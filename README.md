@@ -1,45 +1,66 @@
-**Edit a file, create a new file, and clone from Bitbucket in under 2 minutes**
+train.py
+Functions
 
-When you're done, you can delete the content in this README and update the file with details for others getting started with your repository.
+get_files():
+    Parses console for arguments
+    Asserts ways to model file, input directory
 
-*We recommend that you open this README in another tab as you perform the tasks below. You can [watch our video](https://youtu.be/0ocf7u76WSo) for a full demo of all the steps in this tutorial. Open the video in a new tab to avoid leaving Bitbucket.*
+transform(namespace, line):
+    Cleans line from file of stuff
+    Splits it to words
 
----
+check_words(dictionary, word1, word2):
+    Creates bigram if it does not exist
+    Else increases its frequency
 
-## Edit a file
+check_start_word(dictionary, word):
+    Creates special bigram of two words:
+        "start word" and 'word'
+    *"start word" is a specificator for marking text beginning, end of sentence
+     ("start word" goes after words with "?.!")
 
-You’ll start by editing this README file to learn how to edit a file in Bitbucket.
+take_words(dictionary, word1, word2):
+    Considers two cases:
+    1. Word1 is "start word"
+    2. Word1 is usual word
 
-1. Click **Source** on the left side.
-2. Click the README.md link from the list of files.
-3. Click the **Edit** button.
-4. Delete the following text: *Delete this line to make a change to the README from Bitbucket.*
-5. After making your change, click **Commit** and then **Commit** again in the dialog. The commit page will open and you’ll see the change you just made.
-6. Go back to the **Source** page.
+is_end(word):
+    Checks 'word' for being previous to "start word"
+    (whether word is end of sentence or not)
 
----
 
-## Create a file
+count_number(dictionary, word):
+    counts probability for every bigram related to 'word'
 
-Next, you’ll add a new file to this repository.
+Code:
+    Reads files by line
+    For every pair of words calls function 'take_words'
+    If variable 'lastword' is end of sentence, bigram is created not with a
+    'lastword' but with "first word", which we actually won't see in generated text
 
-1. Click the **New file** button at the top of the **Source** page.
-2. Give the file a filename of **contributors.txt**.
-3. Enter your name in the empty file space.
-4. Click **Commit** and then **Commit** again in the dialog.
-5. Go back to the **Source** page.
+    Counts probabilities for all words and bigrams in 'dictionary'
 
-Before you move on, go ahead and explore the repository. You've already seen the **Source** page, but check out the **Commits**, **Branches**, and **Settings** pages.
+    Writes 'dictionary' to file
 
----
+generate.py
+Functions
 
-## Clone a repository
+is_end(word):
+    The same implementation as in 'train.py'
 
-Use these steps to clone from SourceTree, our client for using the repository command-line free. Cloning allows you to work on your files locally. If you don't yet have SourceTree, [download and install first](https://www.sourcetreeapp.com/). If you prefer to clone from the command line, see [Clone a repository](https://confluence.atlassian.com/x/4whODQ).
+generate(dictionary, word):
+    1. Generates a word after 'word'
 
-1. You’ll see the clone button under the **Source** heading. Click that button.
-2. Now click **Check out in SourceTree**. You may need to create a SourceTree account or log in.
-3. When you see the **Clone New** dialog in SourceTree, update the destination path and name if you’d like to and then click **Clone**.
-4. Open the directory you just created to see your repository’s files.
+gen_word(dictionary, lastword):
+    Two cases:
+    1. Lastword is end of sentence(text beginning)
+    2. Lastword is usual word
 
-Now that you're more familiar with your Bitbucket repository, go ahead and add a new file locally. You can [push your change back to Bitbucket with SourceTree](https://confluence.atlassian.com/x/iqyBMg), or you can [add, commit,](https://confluence.atlassian.com/x/8QhODQ) and [push from the command line](https://confluence.atlassian.com/x/NQ0zDQ).
+parse_cmd():
+    Parses command line
+    Asserts directory for output(if specified), length of word sequence, model file
+
+Code:
+    Opens model and loads 'dictionary'
+    Generates word sequence and puts it to specified file or standard output stream
+    Closes file if it is not std out
