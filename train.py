@@ -70,6 +70,16 @@ def is_end(word):
         return None
 
 
+def count_number(dictionary, word):
+    keys = list(dictionary[word].keys())
+    number = 0
+    for i in range(len(keys)):
+        number += dictionary[word][keys[i]]
+    for i in range(len(keys)):
+        dictionary[word][keys[i]] /= number
+    return number
+
+
 namespace = get_files()
 
 infiles = []
@@ -98,6 +108,11 @@ with fileinput.input(files=infiles,
                     continue
                 take_words(dictionary, lastword, line[i])
                 lastword = is_end(line[i])
+
+
+keys = list(dictionary.keys())
+for i in range(len(keys)):
+    count_number(dictionary, keys[i])
 
 file = open(namespace.model, 'wb')
 pickle.dump(dictionary, file)

@@ -24,16 +24,6 @@ def gen_word(dictionary, lastword):
     return generate(dictionary, lastword)
 
 
-def count_number(dictionary, word):
-    keys = list(dictionary[word].keys())
-    number = 0
-    for i in range(len(keys)):
-        number += dictionary[word][keys[i]]
-    for i in range(len(keys)):
-        dictionary[word][keys[i]] /= number
-    return number
-
-
 def parse_cmd():
     parser = argparse.ArgumentParser(description=
                                      'Output directory for text')
@@ -71,16 +61,11 @@ file = None
 if namespace.output is None:
     file = os.sys.stdout
 else:
-    file = open(namespace.output, 'w', encoding='windows-1251')
+    file = open(namespace.output, 'w', encoding="utf-8")
 
 model = open(namespace.model, 'rb')
 dictionary = pickle.load(model)
 model.close()
-
-keys = list(dictionary.keys())
-
-for i in range(len(keys)):
-    count_number(dictionary, keys[i])
 
 lastword = '.'
 leni = 0
