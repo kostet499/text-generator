@@ -5,6 +5,7 @@ import re
 import pickle
 
 
+<<<<<<< HEAD
 def get_files():
     parser = argparse.ArgumentParser(description=
                                      'Input directory for '
@@ -34,10 +35,17 @@ def get_files():
 
 
 def transform(namespace, line):
+=======
+def transform(line):
+>>>>>>> aa3d4224ba9f82a826a2b7cd6fab8e579da83af0
     if namespace.lc:
         line = line.lower()
     line = re.sub('[^a-zA-Zа-яА-ЯъЁё0-9!?.,-]', ' ', line)
     line = line.split(' ')
+<<<<<<< HEAD
+=======
+
+>>>>>>> aa3d4224ba9f82a826a2b7cd6fab8e579da83af0
     return line
 
 
@@ -70,6 +78,7 @@ def is_end(word):
         return None
 
 
+<<<<<<< HEAD
 def count_number(dictionary, word):
     keys = list(dictionary[word].keys())
     number = 0
@@ -83,6 +92,27 @@ def count_number(dictionary, word):
 namespace = get_files()
 
 infiles = []
+=======
+parser = argparse.ArgumentParser(description=
+                                 'Input directory for training files and model')
+parser.add_argument('--input-dir', help=
+                    'choose the directory with files for training')
+parser.add_argument('--model', help=
+                    'choose the directory to save the model')
+parser.add_argument('--lc', action='store_true', help=
+                    'transform to lower case')
+namespace, _ = parser.parse_known_args()
+
+if not os.path.isfile(str(namespace.model)):
+    print('Chosen file for model is not existing')
+    exit(0)
+
+infiles = []
+if namespace.input_dir is not None and not os.path.isdir(namespace.input_dir):
+    print('Chosen directory for train is not existing')
+    exit(0)
+
+>>>>>>> aa3d4224ba9f82a826a2b7cd6fab8e579da83af0
 if namespace.input_dir is not None:
     infiles = os.listdir(namespace.input_dir)
 
@@ -96,24 +126,35 @@ for i in range(len(infiles)):
 
 dictionary = dict([])
 lastword = None
+<<<<<<< HEAD
 with fileinput.input(files=infiles,
                      openhook=fileinput.hook_encoded("utf-8")) as f:
+=======
+with fileinput.input(files=infiles, openhook=fileinput.hook_encoded("utf-8")) as f:
+>>>>>>> aa3d4224ba9f82a826a2b7cd6fab8e579da83af0
     for line in f:
         if f.filename().find('txt') == -1 and not f.isstdin():
             f.nextfile()
         else:
+<<<<<<< HEAD
             line = transform(namespace, line)
+=======
+            line = transform(line)
+>>>>>>> aa3d4224ba9f82a826a2b7cd6fab8e579da83af0
             for i in range(len(line)):
                 if len(line[i]) == 0:
                     continue
                 take_words(dictionary, lastword, line[i])
                 lastword = is_end(line[i])
 
+<<<<<<< HEAD
 
 keys = list(dictionary.keys())
 for i in range(len(keys)):
     count_number(dictionary, keys[i])
 
+=======
+>>>>>>> aa3d4224ba9f82a826a2b7cd6fab8e579da83af0
 file = open(namespace.model, 'wb')
 pickle.dump(dictionary, file)
 file.close()
