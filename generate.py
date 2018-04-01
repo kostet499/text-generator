@@ -18,12 +18,6 @@ def generate(dictionary, word):
                                p=list(dictionary[word].values()))[0]
 
 
-def gen_word(dictionary, lastword):
-    if is_end(lastword) is None:
-        return generate(dictionary, 'specialWord1337228')
-    return generate(dictionary, lastword)
-
-
 def parse_cmd():
     parser = argparse.ArgumentParser(description=
                                      'Output directory for text')
@@ -35,7 +29,7 @@ def parse_cmd():
                         help='choose the first word')
     parser.add_argument('--length', type=int,
                         help='the number of words in the generated sequence')
-    namespace, _ = parser.parse_known_args()
+    namespace = parser.parse_args()
 
     if namespace.model is None:
         print('Model file is not chosen')
@@ -70,7 +64,7 @@ model.close()
 lastword = '.'
 length_string = 0
 for _ in range(namespace.length):
-    word = gen_word(dictionary, lastword)
+    word = generate(dictionary, lastword)
     file.write(word + ' ')
     length_string += len(word) + 1
     if length_string > 80:

@@ -5,7 +5,7 @@ import re
 import pickle
 
 
-def get_files():
+def get_namespace():
     parser = argparse.ArgumentParser(description=
                                      'Input directory for '
                                      'training files and model')
@@ -15,14 +15,10 @@ def get_files():
                         help='choose the directory to save the model')
     parser.add_argument('--lc', action='store_true',
                         help='transform to lower case')
-    namespace, _ = parser.parse_known_args()
+    namespace = parser.parse_args()
 
     if namespace.model is None:
         print('File for model is not chosen')
-        exit(0)
-
-    if not os.path.isfile(str(namespace.model)):
-        print('Chosen file for model is not existing')
         exit(0)
 
     if namespace.input_dir is not None and not os.path.isdir(
@@ -33,8 +29,8 @@ def get_files():
     return namespace
 
 
-def transform(namespace, line):
-    if namespace.lc:
+def transform(is_lower_case, line):
+    if is_lower_case:
         line = line.lower()
     line = re.sub('[^a-zA-Zа-яА-ЯъЁё0-9!?.,-]', ' ', line)
     line = line.split(' ')
@@ -50,18 +46,6 @@ def check_words(dictionary, word1, word2):
         dictionary[word1][word2] += 1
 
 
-def check_start_word(dictionary, word):
-    start = 'specialWord1337228'
-    check_words(dictionary, start, word)
-
-
-def take_words(dictionary, word1, word2):
-    if word1 is None:
-        check_start_word(dictionary, word2)
-        return
-    check_words(dictionary, word1, word2)
-
-
 def is_end(word):
     end_symbol = re.sub('[^?.!]', '', word)
     if len(end_symbol) == 0:
@@ -70,17 +54,17 @@ def is_end(word):
         return None
 
 
-def count_number(dictionary, word):
+def count_probability(dictionary, word):
     keys = list(dictionary[word].keys())
     number = 0
-    for i in range(len(keys)):
-        number += dictionary[word][keys[i]]
-    for i in range(len(keys)):
-        dictionary[word][keys[i]] /= number
+    for key in keys:
+        number += dictionary[word][key]
+    for key in keys:
+        dictionary[word][key] /= number
     return number
 
 
-namespace = get_files()
+namespace = get_namespace()
 
 infiles = []
 if namespace.input_dir is not None:
@@ -92,27 +76,26 @@ if len(infiles) == 0 and namespace.input_dir is not None:
 print("Training started")
 
 for i in range(len(infiles)):
-    infiles[i] = namespace.input_dir + '/' + infiles[i]
+    if not infiles[i].endswith('.txt'):
+        continue
+    infiles[i] = os.path.join(namespace.input_dir, infiles[i])
 
 dictionary = dict([])
 lastword = None
 with fileinput.input(files=infiles,
                      openhook=fileinput.hook_encoded("utf-8")) as f:
     for line in f:
-        if f.filename().find('txt') == -1 and not f.isstdin():
-            f.nextfile()
-        else:
-            line = transform(namespace, line)
-            for i in range(len(line)):
-                if len(line[i]) == 0:
-                    continue
-                take_words(dictionary, lastword, line[i])
-                lastword = is_end(line[i])
+        line = transform(namespace.lc, line)
+        for word in line:
+            if len(word) == 0:
+                continue
+            check_words(dictionary, lastword, word)
+            lastword = is_end(word)
 
 
 keys = list(dictionary.keys())
-for i in range(len(keys)):
-    count_number(dictionary, keys[i])
+for key in keys:
+    count_probability(dictionary, key)
 
 file = open(namespace.model, 'wb')
 pickle.dump(dictionary, file)
