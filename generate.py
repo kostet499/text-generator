@@ -68,14 +68,14 @@ dictionary = pickle.load(model)
 model.close()
 
 lastword = '.'
-leni = 0
+length_string = 0
 for _ in range(namespace.length):
     word = gen_word(dictionary, lastword)
     file.write(word + ' ')
-    leni += len(word) + 1
-    if leni > 80:
+    length_string += len(word) + 1
+    if length_string > 80:
         file.write('\n')
-        leni = 0
+        length_string = 0
     lastword = word
 
 if namespace.output is not None:
