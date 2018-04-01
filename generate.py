@@ -13,9 +13,9 @@ def is_end(word):
         return None
 
 
-def generate(dictionary, word):
-    return numpy.random.choice(list(dictionary[word].keys()), 1,
-                               p=list(dictionary[word].values()))[0]
+def generate(bigrams, word):
+    return numpy.random.choice(list(bigrams[word].keys()), 1,
+                               p=list(bigrams[word].values()))[0]
 
 
 def parse_cmd():
@@ -43,9 +43,6 @@ def parse_cmd():
         print('Length is not defined')
         exit(0)
 
-    if namespace.output is not None and not os.path.isfile(namespace.output):
-        print('Output file doesn\'t exist')
-        exit(0)
     return namespace
 
 
@@ -58,19 +55,19 @@ else:
     file = open(namespace.output, 'w', encoding="utf-8")
 
 model = open(namespace.model, 'rb')
-dictionary = pickle.load(model)
+bigrams = pickle.load(model)
 model.close()
 
-lastword = '.'
+lastword = None
 length_string = 0
 for _ in range(namespace.length):
-    word = generate(dictionary, lastword)
+    word = generate(bigrams, lastword)
     file.write(word + ' ')
     length_string += len(word) + 1
     if length_string > 80:
         file.write('\n')
         length_string = 0
-    lastword = word
+    lastword = is_end(word)
 
 if namespace.output is not None:
     file.close()

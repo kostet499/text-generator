@@ -37,13 +37,13 @@ def transform(is_lower_case, line):
     return line
 
 
-def check_words(dictionary, word1, word2):
-    if word1 not in dictionary:
-        dictionary[word1] = dict([])
-    if word2 not in dictionary[word1]:
-        dictionary[word1][word2] = 1
+def check_words(bigrams, word1, word2):
+    if word1 not in bigrams:
+        bigrams[word1] = dict([])
+    if word2 not in bigrams[word1]:
+        bigrams[word1][word2] = 1
     else:
-        dictionary[word1][word2] += 1
+        bigrams[word1][word2] += 1
 
 
 def is_end(word):
@@ -54,13 +54,13 @@ def is_end(word):
         return None
 
 
-def count_probability(dictionary, word):
-    keys = list(dictionary[word].keys())
+def count_probability(bigrams, word):
+    keys = list(bigrams[word].keys())
     number = 0
     for key in keys:
-        number += dictionary[word][key]
+        number += bigrams[word][key]
     for key in keys:
-        dictionary[word][key] /= number
+        bigrams[word][key] /= number
     return number
 
 
@@ -77,10 +77,11 @@ print("Training started")
 
 for i in range(len(infiles)):
     if not infiles[i].endswith('.txt'):
+        del infiles[i]
         continue
     infiles[i] = os.path.join(namespace.input_dir, infiles[i])
 
-dictionary = dict([])
+bigrams = dict([])
 lastword = None
 with fileinput.input(files=infiles,
                      openhook=fileinput.hook_encoded("utf-8")) as f:
@@ -89,14 +90,14 @@ with fileinput.input(files=infiles,
         for word in line:
             if len(word) == 0:
                 continue
-            check_words(dictionary, lastword, word)
+            check_words(bigrams, lastword, word)
             lastword = is_end(word)
 
 
-keys = list(dictionary.keys())
+keys = list(bigrams.keys())
 for key in keys:
-    count_probability(dictionary, key)
+    count_probability(bigrams, key)
 
 file = open(namespace.model, 'wb')
-pickle.dump(dictionary, file)
+pickle.dump(bigrams, file)
 file.close()
