@@ -3,7 +3,6 @@ import pickle
 import os.path
 import numpy
 import re
-import collections
 
 
 def is_end(word):

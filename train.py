@@ -29,7 +29,7 @@ def get_namespace():
         exit(0)
 
     if not namespace.model.endswith('.txt'):
-        namespace.model = namespace.model + '.txt';
+        namespace.model = namespace.model + '.txt'
 
     return namespace
 
