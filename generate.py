@@ -3,9 +3,16 @@ import pickle
 import os.path
 import numpy
 import re
+import collections
 
 
 def is_end(word):
+    """
+    Check word for being the end of the sentence
+    :param word: word to be checked
+    :return: None or String type
+    """
+
     end_symbol = re.sub('[^?.!]', '', word)
     if len(end_symbol) == 0:
         return word
@@ -14,11 +21,13 @@ def is_end(word):
 
 
 def generate(bigrams, word):
+    """Generate bigram related to word"""
     return numpy.random.choice(list(bigrams[word].keys()), 1,
                                p=list(bigrams[word].values()))[0]
 
 
 def parse_cmd():
+    """Parse cmd for arguments, check them and return namespace"""
     parser = argparse.ArgumentParser(description=
                                      'Output directory for text')
     parser.add_argument('--output',
@@ -35,8 +44,9 @@ def parse_cmd():
         print('Model file is not chosen')
         exit(0)
 
-    if not os.path.isfile(namespace.model):
-        print('Model file doesn\'t exist')
+    if not os.path.isfile(namespace.model) \
+            or not namespace.model.endswith('.txt'):
+        print('Model file doesn\'t exist or is not a .txt file')
         exit(0)
 
     if namespace.length is None:

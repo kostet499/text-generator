@@ -3,9 +3,11 @@ import os.path
 import fileinput
 import re
 import pickle
+import collections
 
 
 def get_namespace():
+    """"Operate with console arguments and return namespace"""
     parser = argparse.ArgumentParser(description=
                                      'Input directory for '
                                      'training files and model')
@@ -26,10 +28,20 @@ def get_namespace():
         print('Chosen directory for train is not existing')
         exit(0)
 
+    if not namespace.model.endswith('.txt'):
+        namespace.model = namespace.model + '.txt';
+
     return namespace
 
 
 def transform(is_lower_case, line):
+    """
+    Clean string from rubbish
+    :param is_lower_case: change to lower case if true
+    :param line: string to operate with
+    :return: list of words
+    """
+
     if is_lower_case:
         line = line.lower()
     line = re.sub('[^a-zA-Zа-яА-ЯъЁё0-9!?.,-]', ' ', line)
@@ -37,9 +49,8 @@ def transform(is_lower_case, line):
     return line
 
 
-def check_words(bigrams, word1, word2):
-    if word1 not in bigrams:
-        bigrams[word1] = dict([])
+def insert_bigram(bigrams, word1, word2):
+    """Check word1, word2 in dictionary and update them"""
     if word2 not in bigrams[word1]:
         bigrams[word1][word2] = 1
     else:
@@ -47,6 +58,12 @@ def check_words(bigrams, word1, word2):
 
 
 def is_end(word):
+    """
+    Check word for being the end of the sentence
+    :param word: word to be checked
+    :return: None or String type 
+    """
+
     end_symbol = re.sub('[^?.!]', '', word)
     if len(end_symbol) == 0:
         return word
@@ -55,13 +72,14 @@ def is_end(word):
 
 
 def count_probability(bigrams, word):
+    """Calculate chances for every bigram related to word to be generated"""
     keys = list(bigrams[word].keys())
-    number = 0
+    frequency_word = 0
     for key in keys:
-        number += bigrams[word][key]
+        frequency_word += bigrams[word][key]
     for key in keys:
-        bigrams[word][key] /= number
-    return number
+        bigrams[word][key] /= frequency_word
+    return frequency_word
 
 
 namespace = get_namespace()
@@ -75,13 +93,10 @@ if len(infiles) == 0 and namespace.input_dir is not None:
     exit(0)
 print("Training started")
 
-for i in range(len(infiles)):
-    if not infiles[i].endswith('.txt'):
-        del infiles[i]
-        continue
-    infiles[i] = os.path.join(namespace.input_dir, infiles[i])
+infiles = [os.path.join(namespace.input_dir, file)
+           for file in infiles if(file.endswith('.txt'))]
 
-bigrams = dict([])
+bigrams = collections.defaultdict(dict)
 lastword = None
 with fileinput.input(files=infiles,
                      openhook=fileinput.hook_encoded("utf-8")) as f:
@@ -90,7 +105,7 @@ with fileinput.input(files=infiles,
         for word in line:
             if len(word) == 0:
                 continue
-            check_words(bigrams, lastword, word)
+            insert_bigram(bigrams, lastword, word)
             lastword = is_end(word)
 
 
