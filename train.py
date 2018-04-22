@@ -14,14 +14,11 @@ def get_namespace():
     parser.add_argument('--input-dir',
                         help='choose the directory with files for training')
     parser.add_argument('--model',
-                        help='choose the directory to save the model')
+                        help='choose the directory to save the model',
+                        required=True)
     parser.add_argument('--lc', action='store_true',
-                        help='transform to lower case')
+                        help='clean_string to lower case')
     namespace = parser.parse_args()
-
-    if namespace.model is None:
-        print('File for model is not chosen')
-        exit(0)
 
     if namespace.input_dir is not None and not os.path.isdir(
             namespace.input_dir):
@@ -34,7 +31,7 @@ def get_namespace():
     return namespace
 
 
-def transform(is_lower_case, line):
+def clean_string(is_lower_case, line):
     """
     Clean string from rubbish
     :param is_lower_case: change to lower case if true
@@ -73,11 +70,10 @@ def is_end(word):
 
 def count_probability(bigrams, word):
     """Calculate chances for every bigram related to word to be generated"""
-    keys = list(bigrams[word].keys())
     frequency_word = 0
-    for key in keys:
+    for key in bigrams[word].keys():
         frequency_word += bigrams[word][key]
-    for key in keys:
+    for key in bigrams[word].keys():
         bigrams[word][key] /= frequency_word
     return frequency_word
 
@@ -101,16 +97,14 @@ lastword = None
 with fileinput.input(files=infiles,
                      openhook=fileinput.hook_encoded("utf-8")) as f:
     for line in f:
-        line = transform(namespace.lc, line)
+        line = clean_string(namespace.lc, line)
         for word in line:
             if len(word) == 0:
                 continue
             insert_bigram(bigrams, lastword, word)
             lastword = is_end(word)
 
-
-keys = list(bigrams.keys())
-for key in keys:
+for key in bigrams.keys():
     count_probability(bigrams, key)
 
 file = open(namespace.model, 'wb')

@@ -32,24 +32,17 @@ def parse_cmd():
     parser.add_argument('--output',
                         help='choose the file where text will be generated')
     parser.add_argument('--model',
-                        help='choose the model file')
+                        help='choose the model file', required=True)
     parser.add_argument('--seed',
                         help='choose the first word')
     parser.add_argument('--length', type=int,
-                        help='the number of words in the generated sequence')
+                        help='the number of words in the generated sequence',
+                        required=True)
     namespace = parser.parse_args()
-
-    if namespace.model is None:
-        print('Model file is not chosen')
-        exit(0)
 
     if not os.path.isfile(namespace.model) \
             or not namespace.model.endswith('.txt'):
         print('Model file doesn\'t exist or is not a .txt file')
-        exit(0)
-
-    if namespace.length is None:
-        print('Length is not defined')
         exit(0)
 
     return namespace
