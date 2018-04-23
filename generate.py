@@ -40,36 +40,40 @@ def parse_cmd():
                         required=True)
     namespace = parser.parse_args()
 
-    if not os.path.isfile(namespace.model) \
-            or not namespace.model.endswith('.txt'):
-        print('Model file doesn\'t exist or is not a .txt file')
+    if not os.path.isfile(namespace.model):
+        print('Model file doesn\'t exist')
         exit(0)
 
     return namespace
 
 
-namespace = parse_cmd()
+def main():
+    namespace = parse_cmd()
 
-file = None
-if namespace.output is None:
-    file = os.sys.stdout
-else:
-    file = open(namespace.output, 'w', encoding="utf-8")
+    file = None
+    if namespace.output is None:
+        file = os.sys.stdout
+    else:
+        file = open(namespace.output, 'w', encoding="utf-8")
 
-model = open(namespace.model, 'rb')
-bigrams = pickle.load(model)
-model.close()
+    model = open(namespace.model, 'rb')
+    bigrams = pickle.load(model)
+    model.close()
 
-lastword = None
-length_string = 0
-for _ in range(namespace.length):
-    word = generate(bigrams, lastword)
-    file.write(word + ' ')
-    length_string += len(word) + 1
-    if length_string > 80:
-        file.write('\n')
-        length_string = 0
-    lastword = is_end(word)
+    lastword = None
+    length_string = 0
+    for _ in range(namespace.length):
+        word = generate(bigrams, lastword)
+        file.write(word + ' ')
+        length_string += len(word) + 1
+        if length_string > 80:
+            file.write('\n')
+            length_string = 0
+        lastword = is_end(word)
 
-if namespace.output is not None:
-    file.close()
+    if namespace.output is not None:
+        file.close()
+
+
+if __name__ == "__main__":
+    main()

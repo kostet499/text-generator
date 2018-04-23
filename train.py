@@ -1,6 +1,6 @@
 import argparse
 import os.path
-import fileinput
+import sys
 import re
 import pickle
 import collections
@@ -25,9 +25,6 @@ def get_namespace():
         print('Chosen directory for train is not existing')
         exit(0)
 
-    if not namespace.model.endswith('.txt'):
-        namespace.model = namespace.model + '.txt'
-
     return namespace
 
 
@@ -49,16 +46,15 @@ def clean_string(is_lower_case, line):
 def insert_bigram(bigrams, word1, word2):
     """Check word1, word2 in dictionary and update them"""
     if word2 not in bigrams[word1]:
-        bigrams[word1][word2] = 1
-    else:
-        bigrams[word1][word2] += 1
+        bigrams[word1][word2] = 0
+    bigrams[word1][word2] += 1
 
 
 def is_end(word):
     """
     Check word for being the end of the sentence
     :param word: word to be checked
-    :return: None or String type 
+    :return: None or String type
     """
 
     end_symbol = re.sub('[^?.!]', '', word)
@@ -78,35 +74,69 @@ def count_probability(bigrams, word):
     return frequency_word
 
 
-namespace = get_namespace()
+def get_filename(filepath):
+    """Get filename from filepath"""
+    reversed_filepath = filepath[::-1]
+    index = reversed_filepath.find('\\')
+    if index == -1:
+        reversed_filepath.find('/')
+    return filepath[len(filepath) - index:len(filepath)]
 
-infiles = []
-if namespace.input_dir is not None:
-    infiles = os.listdir(namespace.input_dir)
 
-if len(infiles) == 0 and namespace.input_dir is not None:
-    print('Directory is empty')
-    exit(0)
-print("Training started")
+def read_file(filepath, bigrams, is_lower_case):
+    """Read file and check for right encoding"""
+    lastword = None
+    try:
+        with open(filepath, encoding='utf-8') as f:
+            for line in f:
+                line = clean_string(is_lower_case, line)
+                for word in line:
+                    if len(word) == 0:
+                        continue
+                    insert_bigram(bigrams, lastword, word)
+                    lastword = is_end(word)
+    except UnicodeDecodeError:
+        print('File', get_filename(filepath), 'encoding is not UTF-8')
+        return
 
-infiles = [os.path.join(namespace.input_dir, file)
-           for file in infiles if(file.endswith('.txt'))]
 
-bigrams = collections.defaultdict(dict)
-lastword = None
-with fileinput.input(files=infiles,
-                     openhook=fileinput.hook_encoded("utf-8")) as f:
-    for line in f:
-        line = clean_string(namespace.lc, line)
-        for word in line:
-            if len(word) == 0:
-                continue
-            insert_bigram(bigrams, lastword, word)
-            lastword = is_end(word)
+def main():
+    namespace = get_namespace()
 
-for key in bigrams.keys():
-    count_probability(bigrams, key)
+    infiles = []
+    if namespace.input_dir is not None:
+        infiles = os.listdir(namespace.input_dir)
 
-file = open(namespace.model, 'wb')
-pickle.dump(bigrams, file)
-file.close()
+    if len(infiles) == 0 and namespace.input_dir is not None:
+        print('Directory is empty')
+        exit(0)
+    print("Training started")
+
+    infiles = [os.path.join(namespace.input_dir, file)
+               for file in infiles if(file.endswith('.txt'))]
+
+    bigrams = collections.defaultdict(collections.defaultdict)
+
+    for filepath in infiles:
+        read_file(filepath, bigrams, namespace.lc)
+
+    if len(infiles) == 0:
+        lastword = None
+        for line in sys.stdin:
+            line = clean_string(namespace.lc, line)
+            for word in line:
+                if len(word) == 0:
+                    continue
+                insert_bigram(bigrams, lastword, word)
+                lastword = is_end(word)
+
+    for key in bigrams.keys():
+        count_probability(bigrams, key)
+
+    file = open(namespace.model, 'wb')
+    pickle.dump(bigrams, file)
+    file.close()
+
+
+if __name__ == "__main__":
+    main()
