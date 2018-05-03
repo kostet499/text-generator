@@ -74,15 +74,6 @@ def count_probability(bigrams, word):
     return frequency_word
 
 
-def get_filename(filepath):
-    """Get filename from filepath"""
-    reversed_filepath = filepath[::-1]
-    index = reversed_filepath.find('\\')
-    if index == -1:
-        reversed_filepath.find('/')
-    return filepath[len(filepath) - index:len(filepath)]
-
-
 def read_file(filepath, bigrams, is_lower_case):
     """Read file and check for right encoding"""
     lastword = None
@@ -96,7 +87,7 @@ def read_file(filepath, bigrams, is_lower_case):
                     insert_bigram(bigrams, lastword, word)
                     lastword = is_end(word)
     except UnicodeDecodeError:
-        print('File', get_filename(filepath), 'encoding is not UTF-8')
+        print('File', os.path.split(filepath)[1], 'encoding is not UTF-8')
         return
 
 
