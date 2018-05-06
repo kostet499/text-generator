@@ -60,8 +60,12 @@ def main():
     bigrams = pickle.load(model)
     model.close()
 
-    lastword = None
     length_string = 0
+    lastword = namespace.seed
+    if lastword is not None:
+        print(lastword, end=' ')
+        length_string = len(lastword)
+
     for _ in range(namespace.length):
         word = generate(bigrams, lastword)
         file.write(word + ' ')
