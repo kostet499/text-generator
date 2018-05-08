@@ -45,8 +45,6 @@ def clean_string(is_lower_case, line):
 
 def insert_bigram(bigrams, word1, word2):
     """Check word1, word2 in dictionary and update them"""
-    if word2 not in bigrams[word1]:
-        bigrams[word1][word2] = 0
     bigrams[word1][word2] += 1
 
 
@@ -106,7 +104,7 @@ def main():
     infiles = [os.path.join(namespace.input_dir, file)
                for file in infiles if(file.endswith('.txt'))]
 
-    bigrams = collections.defaultdict(collections.defaultdict)
+    bigrams = collections.defaultdict(lambda: collections.defaultdict(int))
 
     for filepath in infiles:
         read_file(filepath, bigrams, namespace.lc)
@@ -125,7 +123,7 @@ def main():
         count_probability(bigrams, key)
 
     file = open(namespace.model, 'wb')
-    pickle.dump(bigrams, file)
+    pickle.dump(dict(bigrams), file)
     file.close()
 
 
